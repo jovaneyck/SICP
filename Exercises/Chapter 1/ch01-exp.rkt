@@ -50,12 +50,14 @@
 ; 1.16 iterative exp O(log n)
 ;that uses (b^(n/2))^2 = (b^2)^(n/2)
 ; => b^n = (b^2)^(n/2)
-(define (exp-alt b n)(exp-alt-acc b n 1))
-
-;invariant quantity: a*b^n
-(define (exp-alt-acc b n a)
-  (cond ((< n 1) a)
-        (else (exp-alt-acc (square b) (/ n 2) b))))
+(define (exp-alt b n)
+  (define (exp-iter a b n)
+    (cond
+      ((= 0 n) a)
+      ((= 1 n) (* a b))
+      (else (exp-iter (* a (* b b)) b (- n 2))))
+  )
+  (exp-iter 1 b n))
 
 (ae exp-alt 1 0 1)
 (ae exp-alt 1 1 1)

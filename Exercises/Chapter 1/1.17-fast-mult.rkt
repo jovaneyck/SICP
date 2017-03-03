@@ -20,6 +20,7 @@
     (else (+ a (fast-mul a (- b 1))))))
     
 ;1.18
+;Invariant quantity= a*b+acc
 (define (tailrec-mul a b)
   (define (rmul a b acc)
     (cond

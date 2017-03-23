@@ -20,7 +20,7 @@
              (lambda (i) 1.0)
              k))
 
-(define solution-rec
+(define solution-iter
   (cont-frac-iter
    (lambda (i) 1.0)
    (lambda (i) 1.0)
@@ -29,5 +29,5 @@
 (require rackunit)
 
 (check-= solution 0.6180 0.0001)
-(check-= solution-rec 0.6180 0.0001)
+(check-= solution-iter 0.6180 0.0001)
 (println "Done")

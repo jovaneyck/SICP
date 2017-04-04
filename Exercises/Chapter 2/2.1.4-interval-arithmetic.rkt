@@ -1,5 +1,7 @@
 #lang racket
 
+(require rackunit)
+
 (define (add-interval x y)
   (make-interval (+ (lower-bound x) (lower-bound y))
                  (+ (upper-bound x) (upper-bound y))))
@@ -17,16 +19,27 @@
                 (make-interval (/ 1.0 (upper-bound y))
                                (/ 1.0 (lower-bound y)))))
 
-
 ;2.7
 (define (make-interval a b) (cons a b))
 (define (lower-bound interval) (car interval))
 (define (upper-bound interval) (cdr interval))
-
-(require rackunit)
 
 (check-equal?
  (add-interval
   (make-interval 0.95 1.05)
   (make-interval 0.01 0.02))
  (make-interval 0.96 1.07))
+
+;2.8
+(define (sub-interval x y)
+  (add-interval
+   x
+   (make-interval
+    (* -1.0 (lower-bound y))
+    (* -1.0 (upper-bound y)))))
+
+(check-equal?
+ (sub-interval
+  (make-interval 0.95 1.05)
+  (make-interval 0.01 0.02))
+ (make-interval 0.94 1.03))

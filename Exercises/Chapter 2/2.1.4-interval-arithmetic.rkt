@@ -2,7 +2,7 @@
 
 (require rackunit)
 (require quickcheck)
- (require rackunit/quickcheck)
+(require rackunit/quickcheck)
 
 (define (add-interval x y)
   (make-interval (+ (lower-bound x) (lower-bound y))
@@ -16,10 +16,17 @@
     (make-interval (min p1 p2 p3 p4)
                    (max p1 p2 p3 p4))))
 
+(define (spans-zero i)
+  (and
+   (<= (lower-bound i) 0)
+   (<= 0 (upper-bound i))))
+
 (define (div-interval x y)
-  (mul-interval x
-                (make-interval (/ 1.0 (upper-bound y))
-                               (/ 1.0 (lower-bound y)))))
+  (if (spans-zero y)
+      (error "Cannot divide by an interval spanning 0")
+      (mul-interval x
+                    (make-interval (/ 1.0 (upper-bound y))
+                                   (/ 1.0 (lower-bound y))))))
 
 ;2.7
 (define (make-interval a b) (cons a b))
@@ -65,10 +72,15 @@
             (equal? (+ (width fst) (width snd)) (width (add-interval fst snd)))))
 (check-property width-of-addition-is-sum-of-widths)
 
-; (1, 2) * (3,4) = (3, 8)
-; widths: 1 1 -> 5
-; (1.5, 2) * (-1, 1) = (-2, 2)
-; widths: 0.5 2 -> 4
+
+(let
+    ((fst (make-interval 1 2))
+     (snd (make-interval 3 4)))
+    (check-= (width (mul-interval fst snd)) 2.5 0.001))
+(let
+    ((fst (make-interval 1.5 2))
+     (snd (make-interval -1 1)))
+    (check-equal? (width (mul-interval fst snd)) 2.0))
 #|
 (define width-of-multiplication-is-not-sum-of-widths
   (property ([fst arbitrary-interval]
@@ -76,3 +88,18 @@
             (equal? (+ (width fst) (width snd)) (width (mul-interval fst snd)))))
 (check-property width-of-multiplication-is-not-sum-of-widths)
 |#
+
+;2.10
+(check-equal?
+ (div-interval (make-interval 1 2) (make-interval 4 8))
+ (make-interval 0.125 0.5))
+
+(check-exn
+ exn:fail?
+ (λ () (div-interval (make-interval 1 2) (make-interval -1 0))))
+(check-exn
+ exn:fail?
+ (λ () (div-interval (make-interval 1 2) (make-interval 0 1))))
+(check-exn
+ exn:fail?
+ (λ () (div-interval (make-interval 1 2) (make-interval -1 1))))

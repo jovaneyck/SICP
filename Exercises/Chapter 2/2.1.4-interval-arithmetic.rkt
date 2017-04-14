@@ -90,7 +90,7 @@
 (define (width interval)
   (/
    ( - (upper-bound interval) (lower-bound interval))
-   2))
+   2.0))
 
 (check-equal? (width (make-interval 1.0 4.0)) 1.5)
 
@@ -166,7 +166,6 @@
 (check-equal?
  (mul-interval (make-interval -2 1) (make-interval -4 -3))
  (make-interval -4 8))
-
 (check-equal?
  (mul-interval (make-interval -1 2) (make-interval -3 4))
  (make-interval -6 8))
@@ -180,3 +179,43 @@
              [snd generator-interval])
             (equal? (mul-interval-old fst snd) (mul-interval fst snd))))
 (check-property reworked-multiplication-has-same-result)
+
+(define (make-center-width c w)
+  (make-interval (- c w) (+ c w)))
+(define (center i)
+  (/ (+ (lower-bound i) (upper-bound i)) 2))
+
+(check-equal? (center (make-center-width 40.0 3.5)) 40.0)
+(check-equal? (width (make-center-width 40.0 3.5)) 3.5)
+
+;2.12
+(define (make-center-percent c p)
+  (make-center-width c (* c (/ p 100.0))))
+(define (percent i)
+  (let (
+        [c (center i)]
+        [w (width i)]
+        )
+    ;(error "what" c w)
+    (* (/ w c) 100)
+    ))
+
+(check-equal? (center (make-center-percent 3.0 10.0)) 3.0)
+(check-= (percent (make-center-percent 2.0 10)) 10 0.001)
+(check-equal? (percent (make-center-percent 4 25)) 25.0)
+(check-equal? (make-center-percent 3.0 10) (make-interval 2.7 3.3))
+
+(define (almost-equal? a b delta)
+  (<= (abs (- a b)) delta))
+
+(define center-works-as-expected
+  (property ([c arbitrary-natural]
+             [p arbitrary-natural])
+            (equal? (center (make-center-percent (exact->inexact c) (exact->inexact p))) (exact->inexact c))))
+(check-property center-works-as-expected)
+
+(define percentage-works-as-expected
+  (property ([c arbitrary-natural]
+             [p arbitrary-natural])
+            (almost-equal? (percent (make-center-percent (exact->inexact (+ c 1)) (exact->inexact p))) (exact->inexact p) 0.0001)))
+(check-property percentage-works-as-expected)

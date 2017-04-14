@@ -16,6 +16,21 @@
     (make-interval (min p1 p2 p3 p4)
                    (max p1 p2 p3 p4))))
 
+;2.11 - let's rework multiplication!
+
+(define (mul-interval-new x y)
+  (let ((lx (lower-bound x))
+        (ux (upper-bound x))
+        (ly (lower-bound y))
+        (uy (upper-bound y)))
+    (cond
+      [(and (positive? lx) (positive? ux) (positive? ly) (positive? uy))
+       (make-interval (* lx ly) (* ux uy))]
+      ;[(and (negative? lx) (negative? ux) (negative? ly) (negative? uy))
+      ;(make-interval (* lx uy) (* ux ly))]
+      [else
+       (mul-interval x y)])))
+
 (define (spans-zero i)
   (and
    (<= (lower-bound i) 0)
@@ -24,12 +39,17 @@
 (define (div-interval x y)
   (if (spans-zero y)
       (error "Cannot divide by an interval spanning 0")
-      (mul-interval x
-                    (make-interval (/ 1.0 (upper-bound y))
-                                   (/ 1.0 (lower-bound y))))))
+      (mul-interval
+       x
+       (make-interval
+        (/ 1.0 (upper-bound y))
+        (/ 1.0 (lower-bound y))))))
 
 ;2.7
-(define (make-interval a b) (cons a b))
+(define (make-interval a b)
+  (if (> a b)
+      (error "invalid interval" a b)
+      (cons a b)))
 (define (lower-bound interval) (car interval))
 (define (upper-bound interval) (cdr interval))
 
@@ -41,17 +61,15 @@
 
 ;2.8
 (define (sub-interval x y)
-  (add-interval
-   x
-   (make-interval
-    (* -1.0 (lower-bound y))
-    (* -1.0 (upper-bound y)))))
+   (add-interval
+    x
+    (make-interval (* -1.0 (upper-bound y)) (* -1.0 (lower-bound y)))))
 
 (check-equal?
  (sub-interval
-  (make-interval 0.95 1.05)
+  (make-interval 0.96 1.05)
   (make-interval 0.01 0.02))
- (make-interval 0.94 1.03))
+ (make-interval 0.94 1.04))
 
 ;2.9
 (define (width interval)
@@ -61,26 +79,31 @@
 
 (check-equal? (width (make-interval 1.0 4.0)) 1.5)
 
-; would be nice if I understood enough LISP to express this in function of the make-interval constructor instead
-(define arbitrary-interval (arbitrary-pair arbitrary-rational arbitrary-rational)) 
-
 ;(2,3) + (4,6) = (6,9)
 ;widths: 1 + 2 = 3
-(define width-of-addition-is-sum-of-widths
-  (property ([fst arbitrary-interval]
-             [snd arbitrary-interval])
-            (equal? (+ (width fst) (width snd)) (width (add-interval fst snd)))))
-(check-property width-of-addition-is-sum-of-widths)
-
-
 (let
     ((fst (make-interval 1 2))
      (snd (make-interval 3 4)))
-    (check-= (width (mul-interval fst snd)) 2.5 0.001))
+  (check-= (width (mul-interval fst snd)) 2.5 0.001))
 (let
     ((fst (make-interval 1.5 2))
      (snd (make-interval -1 1)))
-    (check-equal? (width (mul-interval fst snd)) 2.0))
+  (check-equal? (width (mul-interval fst snd)) 2.0))
+
+(define generator-interval
+  (generator-bind
+   (choose-real -100 100)
+   (λ (lower)
+     (generator-bind
+      (choose-real lower 100)
+      (λ (upper) (generator-unit (make-interval lower upper)))))))
+
+(define sum-of-widths-eq-width-of-sum
+  (property ([fst generator-interval]
+             [snd generator-interval])
+            (equal? (+ (width fst) (width snd)) (width (add-interval fst snd)))))
+(check-property sum-of-widths-eq-width-of-sum)
+
 #|
 (define width-of-multiplication-is-not-sum-of-widths
   (property ([fst arbitrary-interval]
@@ -103,3 +126,29 @@
 (check-exn
  exn:fail?
  (λ () (div-interval (make-interval 1 2) (make-interval -1 1))))
+
+(check-equal?
+ (mul-interval (make-interval -1 2) (make-interval 3 4))
+ (make-interval -4 8))
+(check-equal?
+ (mul-interval (make-interval -2 -1) (make-interval 3 4))
+ (make-interval -8 -3))
+(check-equal?
+ (mul-interval (make-interval 1 2) (make-interval -3 4))
+ (make-interval -6 8))
+(check-equal?
+ (mul-interval (make-interval -1 2) (make-interval -3 4))
+ (make-interval -6 8))
+(check-equal?
+ (mul-interval (make-interval -2 -1) (make-interval -4 -3))
+ (make-interval 3 8))
+(check-equal?
+ (mul-interval (make-interval -2 -1) (make-interval -3 4))
+ (make-interval -8 6))
+
+;2.11
+(define reworked-multiplication-has-same-result
+  (property ([fst generator-interval]
+             [snd generator-interval])
+            (equal? (mul-interval fst snd) (mul-interval-new fst snd))))
+(check-property reworked-multiplication-has-same-result)

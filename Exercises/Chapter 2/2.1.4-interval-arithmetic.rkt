@@ -236,3 +236,34 @@
            (let ([i1 (make-center-percent c1 p1)]
                  [i2 (make-center-percent c2 p2)])
              (almost-equal? (guess-percent-mul i1 i2) (percent (mul-interval i1 i2)) 0.1))))
+
+;2.14
+(define (par1 r1 r2)
+  (div-interval (mul-interval r1 r2)
+                (add-interval r1 r2)))
+
+(define (par2 r1 r2)
+  (let ((one (make-interval 1 1))) 
+    (div-interval one
+                  (add-interval (div-interval one r1)
+                                (div-interval one r2)))))
+
+(define generator-interval-positive
+  (generator-bind
+   (choose-integer 1 100)
+   (λ (lower)
+     (generator-bind
+      (choose-integer lower 100)
+      (λ (upper) (generator-unit (make-interval lower upper)))))))
+
+(define algebraically-equivalent-formulas-should-evaluate-to-same-result
+  (property ([r1 generator-interval-positive]
+             [r2 generator-interval-positive])
+            (equal? (par1 r1 r2) (par2 r1 r2))))
+;(check-property algebraically-equivalent-formulas-should-evaluate-to-same-result) ;nope
+
+(define a (make-center-percent 100000 0.1))
+;(center (div-interval a a)) ;1, but not quite :(
+;(percent (div-interval a a)) ;.19 :(
+
+; last exercises are a flashback to numerieke wiskunde, conditie & stabiliteit :)

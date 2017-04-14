@@ -219,3 +219,20 @@
              [p arbitrary-natural])
             (almost-equal? (percent (make-center-percent (exact->inexact (+ c 1)) (exact->inexact p))) (exact->inexact p) 0.0001)))
 (check-property percentage-works-as-expected)
+
+;2.13
+(check-= (percent (mul-interval (make-center-percent 1 3) (make-center-percent 1 7))) 10 0.1)
+(check-= (percent (mul-interval (make-center-percent 1 1) (make-center-percent 1 2))) 3 0.1)
+(check-= (percent (mul-interval (make-center-percent 1 0.01) (make-center-percent 1 0.01))) 0.02 0.001)
+
+(define (guess-percent-mul a b)
+  (+ (percent a) (percent b)))
+
+(check-property
+ (property ([p1 (choose-integer 0 5)]
+            [p2 (choose-integer 0 5)]
+            [c1 (choose-integer 1 100)]
+            [c2 (choose-integer 1 100)])
+           (let ([i1 (make-center-percent c1 p1)]
+                 [i2 (make-center-percent c2 p2)])
+             (almost-equal? (guess-percent-mul i1 i2) (percent (mul-interval i1 i2)) 0.1))))

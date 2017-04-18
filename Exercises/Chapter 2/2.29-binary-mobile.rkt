@@ -88,4 +88,4 @@
 (println "Done")
 
 ;part d: change constructors, what do you have to change? I would hope only the selectors!
-;Yup, check git changelog: https://github.com/jovaneyck/SICP/commit/90b0050a8c414b39b13a6574efcff892d93b8473
+;Yup, check git changelog [here](https://github.com/jovaneyck/SICP/commit/90b0050a8c414b39b13a6574efcff892d93b8473)

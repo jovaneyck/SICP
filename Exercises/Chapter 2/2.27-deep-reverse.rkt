@@ -25,5 +25,5 @@
 (ce (deep-reverse null) null)
 (ce (deep-reverse (list 1 2)) (list 2 1))
 (ce (deep-reverse (list (list 1 2) 3 (list 4 5))) (list (list 5 4) 3 (list 2 1)))
-
+(ce (deep-reverse (list 1 (list 2 (list 3 4)))) (list (list (list 4 3) 2) 1))
 (println "Done")

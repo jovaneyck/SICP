@@ -1,15 +1,15 @@
 #lang racket
 
 (define (make-mobile left-branch right-branch)
-  (list left-branch right-branch))
+  (cons left-branch right-branch))
 
 (define (make-branch length structure)
-  (list length structure))
+  (cons length structure))
 
 (define (left-branch mobile) (car mobile))
-(define (right-branch mobile) (cadr mobile))
+(define (right-branch mobile) (cdr mobile))
 (define (branch-length branch) (car branch))
-(define (branch-structure branch) (cadr branch))
+(define (branch-structure branch) (cdr branch))
 (define (is-weight? structure) (number? structure))
 
 (define (total-weight-branch branch)
@@ -86,3 +86,6 @@
                  (make-branch 1 2))))))
 
 (println "Done")
+
+;part d: change constructors, what do you have to change? I would hope only the selectors!
+;Yup, check git changelog

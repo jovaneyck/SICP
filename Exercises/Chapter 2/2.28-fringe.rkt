@@ -17,4 +17,8 @@
 (ce (fringe x) (list 1 2 3 4))
 (ce (fringe (list x x)) (list 1 2 3 4 1 2 3 4))
 (ce (fringe (list (list 1 (list 2 3) 4 (list 5 6)))) (list 1 2 3 4 5 6))
+
+;note: builtin flatten exists:
+(ce (flatten (list x x)) (list 1 2 3 4 1 2 3 4))
+
 (println "Done")

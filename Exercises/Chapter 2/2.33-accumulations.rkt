@@ -2,12 +2,12 @@
 
 (require rackunit)
 
-(define accumulate foldl)
+(define accumulate foldr)
 (define <??> identity)
 
 (define (my-map p sequence)
   (accumulate
-   (lambda (x y) (append y (list (p x))))
+   (lambda (x y) (cons (p x) y))
    null
    sequence))
 
@@ -19,13 +19,13 @@
   (accumulate
    cons
    seq2
-   (reverse seq1)))
+   seq1))
 
 (check-equal? (my-append (list 1 2) (list 3 4)) (list 1 2 3 4))
 
 (define (my-length sequence)
  (accumulate
-  (λ(count _) (+ count 1))
+  (λ(_ count) (+ count 1))
   0
   sequence))
 

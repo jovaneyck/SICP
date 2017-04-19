@@ -17,6 +17,10 @@
 (define (transpose mat)
   (accumulate-n cons null mat))
 
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map (λ(row) (matrix-*-vector cols row)) m)))
+
 (require rackunit)
 (check-equal? (dot-product (list 1 2 3) (list 4 5 6))
               32)
@@ -30,10 +34,6 @@
 
 (check-equal? (transpose (list (list 1 2 3) (list 4 5 6)))
               (list (list 1 4) (list 2 5) (list 3 6)))
-
-(define (matrix-*-matrix m n)
-  (let ((cols (transpose n)))
-    (map (λ(row) (matrix-*-vector cols row)) m)))
 
 #|
 1 2 3   7  8    1x7 + 2x9 + 3x11   1x8 + 2x10 + 3x12   58  64

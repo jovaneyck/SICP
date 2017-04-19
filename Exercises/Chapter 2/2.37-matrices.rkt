@@ -33,7 +33,7 @@
 
 (define (matrix-*-matrix m n)
   (let ((cols (transpose n)))
-    (map (λ(row) (map (λ(col) (dot-product row col)) cols)) m)))
+    (map (λ(row) (matrix-*-vector cols row)) m)))
 
 #|
 1 2 3   7  8    1x7 + 2x9 + 3x11   1x8 + 2x10 + 3x12   58  64

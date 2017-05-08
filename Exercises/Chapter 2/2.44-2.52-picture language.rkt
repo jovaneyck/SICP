@@ -178,7 +178,7 @@
 
 
 (wave fullscreen-frame)
-;(outline fullscreen-frame)
+(outline fullscreen-frame)
 ;(x fullscreen-frame)
 ;(diamond fullscreen-frame)
 

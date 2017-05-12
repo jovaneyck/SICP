@@ -1,13 +1,95 @@
 #lang racket
 
+;note: The racket/gui coordinate system has origin in the top-left corner.
+;Didn't bother to transform this so all transformations work in this coordinate system.
+
 (require racket/gui)
 (require rackunit)
 
-(define beside (λ (one other) one))
-(define below (λ (one other) one))
-(define flip-vert identity)
-(define flip-horiz identity)
-(define rotate180 identity)
+(define (transform-painter painter origin corner1 corner2)
+  (lambda (frame)
+    (let ((m (frame-coord-map frame)))
+      (let ((new-origin (m origin)))
+        (painter
+         (make-frame new-origin
+                     (sub-vect (m corner1) new-origin)
+                     (sub-vect (m corner2) new-origin)))))))
+
+(define (flip-vert painter)
+  (let ([new-origin (make-vect 0.0 1.0)]
+        [new-edge1  (make-vect 1.0 1.0)]
+        [new-edge2  (make-vect 0.0 0.0)])
+    (transform-painter painter
+                       new-origin
+                       new-edge1
+                       new-edge2)))
+
+;2.50
+(define (flip-horiz painter)
+  (let ([new-origin (make-vect 1.0 0.0)]
+        [new-edge1  (make-vect 0.0 0.0)]
+        [new-edge2  (make-vect 1.0 1.0)])
+    (transform-painter painter
+                       new-origin
+                       new-edge1
+                       new-edge2)))
+
+(define (rotate180 painter)
+  (let ([new-origin (make-vect 1.0 1.0)]
+        [new-edge1  (make-vect 0.0 1.0)]
+        [new-edge2  (make-vect 1.0 0.0)])
+    (transform-painter painter
+                       new-origin
+                       new-edge1
+                       new-edge2)))
+
+(define (rotate90 painter)
+  (let ([new-origin (make-vect 0.0 1.0)]
+        [new-edge1  (make-vect 0.0 0.0)]
+        [new-edge2  (make-vect 1.0 1.0)])
+    (transform-painter painter
+                       new-origin
+                       new-edge1
+                       new-edge2)))
+
+(define (beside painter1 painter2)
+  (let ((split-point (make-vect 0 0.5)))
+    (let ((paint-left
+           (transform-painter painter1
+                              (make-vect 0.0 0.0)
+                              (make-vect 1.0 0)
+                              split-point))
+          (paint-right
+           (transform-painter painter2
+                              split-point
+                              (make-vect 1.0 0.5)
+                              (make-vect 0 1.0))))
+      (lambda (frame)
+        (paint-left frame)
+        (paint-right frame)))))
+
+;2.51
+(define (below painter1 painter2)
+  (let ((split-point (make-vect 0.5 0.0)))
+    (let ((paint-left
+           (transform-painter painter1
+                              (make-vect 0.0 0.0)
+                              split-point
+                              (make-vect 0.0 1.0)))
+          (paint-right
+           (transform-painter painter2
+                              split-point
+                              (make-vect 1.0 0.0)
+                              (make-vect 0.5 1.0))))
+      (lambda (frame)
+        (paint-left frame)
+        (paint-right frame)))))
+
+(define (below-alt painter1 painter2)
+  (rotate180 (rotate90
+              (beside
+               (rotate90 painter1)
+               (rotate90 painter2)))))
 
 ;2.45
 (define (split first-positioning second-positioning)
@@ -42,7 +124,6 @@
   (let ((combine4 (square-of-four identity flip-vert
                                   identity flip-vert)))
     (combine4 painter)))
-
 
 (define (square-limit painter n)
   (let ([combine4 (square-of-four flip-horiz identity
@@ -141,7 +222,7 @@
 (define fullscreen-frame
   (make-frame (make-vect 0 0) (make-vect 0 dimension) (make-vect dimension 0)))
 
-(define wave 
+(define triforce 
   (segments->painter
    (list
     (make-segment (make-vect 0 .5) (make-vect .999 .999))
@@ -150,6 +231,11 @@
     (make-segment (make-vect .999 0.5) (make-vect .5 .25))
     (make-segment (make-vect .5 .25) (make-vect .5 .75))
     (make-segment (make-vect .5 .75) (make-vect .999 .5)))))
+(define wave
+  (segments->painter
+   (list
+    (make-segment (make-vect 0 .5) (make-vect 1 .5))
+    (make-segment (make-vect .75 0) (make-vect .75 .5)))))
 (define wave2 (beside wave (flip-vert wave)))
 (define wave4 (flipped-pairs wave))
 
@@ -176,10 +262,14 @@
     (make-segment (make-vect 1 .5) (make-vect .5 1))
     (make-segment (make-vect .5 1) (make-vect 0 .5)))))
 
-
-(wave fullscreen-frame)
-(outline fullscreen-frame)
+;(wave fullscreen-frame)
+(wave4 fullscreen-frame)
+;((rotate180 wave) fullscreen-frame)
+;((rotate90 wave) fullscreen-frame)
+;(outline fullscreen-frame)
 ;(x fullscreen-frame)
 ;(diamond fullscreen-frame)
+;((below wave wave) fullscreen-frame)
+;((below-alt wave wave) fullscreen-frame)
 
 (make-object image-snip% target)

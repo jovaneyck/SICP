@@ -21,7 +21,11 @@
 
 (define (addend s) (cadr s))
 
-(define (augend s) (caddr s))
+(define (augend s)
+  (let ([aug (cddr s)])
+    (if (= 1 (length aug))
+        (car aug)
+        (cons '+ aug))))
 
 (define (make-product m1 m2)
   (cond ((or (=number? m1 0) (=number? m2 0)) 0)
@@ -35,7 +39,11 @@
 
 (define (multiplier p) (cadr p))
 
-(define (multiplicand p) (caddr p))
+(define (multiplicand p)
+  (let ([mul (cddr p)])
+    (if (= 1 (length mul))
+        (car mul)
+        (cons '* mul))))
 
 (define (make-exponentation a n)
   (cond [(= 0 n) 1]
@@ -66,8 +74,8 @@
          (make-product (make-product (exponent exp)
                                      (make-exponentation (base exp) (- (exponent exp) 1)))
                        (deriv (base exp) var))]
-        (else
-         (error "unknown expression type -- DERIV" exp))))
+        [else
+         (error "unknown expression type -- DERIV" exp)]))
 
 (check-equal? (deriv '(+ x 3) 'x) 1)
 (check-equal? (deriv '(* x y) 'x) 'y)
@@ -87,5 +95,16 @@
 (check-equal? (make-exponentation 3 1) 3)
 (check-equal? (deriv '(** x 2) 'x) '(* 2 x))
 (check-equal? (deriv '(** x 1) 'x) 1)
+
+;2.57
+(check-equal? (addend '(+ 1 2 3)) 1)
+(check-equal? (augend '(+ 1 2 3)) '(+ 2 3))
+
+(check-equal? (multiplier '(* 1 2 3)) 1)
+(check-equal? (multiplicand '(* 1 2 3)) '(* 2 3))
+
+
+(check-equal? (deriv '(* x y (+ x 3)) 'x)
+              '(+ (* x y) (* y (+ x 3))))
 
 (println "Done")

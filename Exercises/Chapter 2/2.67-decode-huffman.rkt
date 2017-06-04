@@ -41,6 +41,33 @@
         ((= bit 1) (right-branch branch))
         (else (error "bad bit -- CHOOSE-BRANCH" bit))))
 
+(define (encode message tree)
+  (if (null? message)
+      '()
+      (append (encode-symbol (car message) tree)
+              (encode (cdr message) tree))))
+
+(define (encode-symbol symbol tree)
+  (cond [(null? tree) (error "symbol not found in tree (empty)" symbol tree)]
+        [(leaf? tree) (error "symbol not found in tree (leaf)" symbol tree)]
+        [else (let ([l (left-branch tree)]
+                    [r (right-branch tree)])
+                (cond [(and (leaf? l)
+                            (eq? (symbol-leaf l)
+                               symbol))
+                       (list 0)]
+                      [(and (leaf? r)
+                            (eq? (symbol-leaf r)
+                               symbol))
+                       (list 1)]
+                      [(memq symbol (symbols l))
+                       (cons 0 (encode-symbol symbol l))]
+                      [(memq symbol (symbols r))
+                       (cons 1 (encode-symbol symbol r))]
+                      [else (error "symbol not found in tree" symbol tree)]))]))
+                                         
+  
+
 (define (adjoin-set x set)
   (cond ((null? set) (list x))
         ((< (weight x) (weight (car set))) (cons x set))
@@ -65,5 +92,9 @@
                        (make-leaf 'B 2)
                        (make-code-tree (make-leaf 'D 1)
                                        (make-leaf 'C 1))))]
-     [sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0)])
-  (check-equal? (decode sample-message sample-tree) '(A D A B B C A)))
+     [sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0)]
+     [raw-message '(A D A B B C A)])
+  (check-equal? (decode sample-message sample-tree) raw-message)
+  (check-equal? (encode raw-message sample-tree) sample-message))
+
+(println "Done")

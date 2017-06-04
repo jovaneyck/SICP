@@ -137,4 +137,16 @@
                        17)])
   (check-equal? (generate-huffman-tree symbol-frequency-pairs) expected-tree))
 
+;2.70
+(let ([frequencies '((A 2) (NA 16) (BOOM 1) (SHA 3) (GET 2) (YIP 9) (JOB 2) (WAH 1))]
+      [message '(GET A JOB SHA NA NA NA NA NA NA NA NA GET A JOB SHA NA NA NA NA NA NA NA NA WAH YIP YIP YIP YIP YIP YIP YIP YIP YIP SHA BOOM)]
+      [expected-code '(1 1 1 1 1 1 1 0 0 1 1 1 1 0 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 0 1 1 1 0 0 0 0 0 0 0 0 0 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 1 0 1 1 0 1 1)])
+  (check-equal? (encode message (generate-huffman-tree frequencies)) expected-code))
+;encoded string: 84 bits
+
+;fixed length:
+;eight-symbol: 3 bits per symbol
+;message length: 36 symbols
+;encoded length: 3 x 36 = 108 bits
+
 (println "Done")

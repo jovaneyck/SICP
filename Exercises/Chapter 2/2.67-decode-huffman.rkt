@@ -150,4 +150,42 @@
 ;message length: 36 symbols
 ;encoded length: 3 x 36 = 108 bits
 
+;2.71
+;n = 5
+; (A 1) (B 2) (C 4) (D 8) (E 16)
+;tree:
+;    .
+;   E \
+;      .
+;     D \
+;        .
+;       C \
+;          .
+;         B A
+;Most frequent symbol: E -> 1 bit
+;Least frequent symbol: A -> 4 bits
+;n = 10
+;A B C D E F G H I J
+;    .
+;   J \
+;      .
+;     I \
+;        .
+;       H \
+;          .
+;         G \
+;            .
+;           F \
+;              .
+;             E \
+;                .
+;               D \
+;                  .
+;                 C \
+;                    .
+;                   B A
+;Most frequent: J -> 1 bit
+;Least frequent: A -> 9 bit
+; in general: most frequent 1 bit, least frequent n-1 bit.
+
 (println "Done")

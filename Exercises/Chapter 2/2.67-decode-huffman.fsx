@@ -25,42 +25,48 @@ let rec weight =
     | Node {left = l; right = r} -> weight l + weight r
 
 let makeCodeTree left right =
-    Node 
-        {
-            left = left
-            right = right
-            symbols = Set.union (symbols left) (symbols right)
-            weight = weight left + weight right
-        }
+    Node <|
+    {
+        left = left
+        right = right
+        symbols = Set.union (symbols left) (symbols right)
+        weight = weight left + weight right
+    }
 
-let decode bits rootNode = 
-    let chooseBranch bit branch =
-        match bit with
-        | O -> branch.left
-        | I -> branch.right
-    let rec decodeOne bits currentBranch =
-        match bits with
-        | [] -> []
-        | bit :: rest ->
-            let nextBranch = chooseBranch bit currentBranch
-            match nextBranch with
-            | Leaf l -> l.symbol :: (decodeOne rest rootNode)
-            | Node n -> decodeOne rest n
-    decodeOne bits rootNode
+let decode bits tree = 
+    match tree with
+    | Leaf l -> failwithf "Cannot decode based on a leaf node (%A)" l //bug in Racket code found here because of static types?
+    | Node rootNode ->
+        let chooseBranch bit branch =
+            match bit with
+            | O -> branch.left
+            | I -> branch.right
+        let rec decodeOne bits currentBranch =
+            match bits with
+            | [] -> []
+            | bit :: rest ->
+                let nextBranch = chooseBranch bit currentBranch
+                match nextBranch with
+                | Leaf l -> l.symbol :: (decodeOne rest rootNode)
+                | Node n -> decodeOne rest n
+        decodeOne bits rootNode
 
-let rec encodeSymbol symbol tree =
-    let {left = l; right = r} = tree
-    match l,r with
-    | Leaf leaf, _ when leaf.symbol = symbol -> [O]
-    | _ , Leaf leaf when leaf.symbol = symbol -> [I]
-    | Node n, _ when Set.contains symbol n.symbols -> O :: (encodeSymbol symbol n)
-    | _, Node n when Set.contains symbol n.symbols -> I :: (encodeSymbol symbol n)
-    | _ -> failwithf "symbol %A not found in tree %A" symbol tree
+let rec encodeSymbol symbol t =
+    match t with
+    | Leaf l -> failwithf "Cannot encode a symbol using a leaf (%A)" l //bug in Racket code found here because of static types?
+    | Node root ->
+        let {left = l; right = r} = root
+        match l,r with
+        | Leaf leaf, _ when leaf.symbol = symbol -> [O]
+        | _ , Leaf leaf when leaf.symbol = symbol -> [I]
+        | n, _ when Set.contains symbol (symbols n) -> O :: (encodeSymbol symbol n)
+        | _, n when Set.contains symbol (symbols n) -> I :: (encodeSymbol symbol n)
+        | _ -> failwithf "symbol %A not found in tree %A" symbol root
 
-let rec encode message rootNode =
+let rec encode message tree =
     match message with
     | [] -> []
-    | s :: xs -> List.append (encodeSymbol s rootNode) (encode xs rootNode)
+    | s :: xs -> List.append (encodeSymbol s tree) (encode xs tree)
 
 let rec adjoinSet el set =
     match set with
@@ -89,14 +95,14 @@ let generateHuffmanTree pairs =
 open Swensen.Unquote
 
 //:(
-let (Node sampleTree) = (makeCodeTree  (makeLeaf 'A' 4) 
+let sampleTree = (makeCodeTree  (makeLeaf 'A' 4) 
                                         (makeCodeTree (makeLeaf 'B' 2) 
                                                       (makeCodeTree (makeLeaf 'D' 1) 
                                                                     (makeLeaf 'C' 1))))
 let encodedMessage = [O; I; I; O; O; I; O; I; O; I; I; I; O]
 let rawMessage = ['A';'D';'A';'B';'B';'C';'A']
 
-let (Node lyricTree) = //again :(
+let lyricTree =
     [("A", 2); ("NA", 16); ("BOOM", 1); ("SHA", 3); ("GET", 2); ("YIP", 9); ("JOB", 2); ("WAH", 1)]
     |> generateHuffmanTree
 let lyrics = 

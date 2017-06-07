@@ -79,6 +79,8 @@
   (put 'deriv '** deriv-exponent))
 (install-deriv-package)
 
+;d) Only the install logic should be impacted.
+
 ;test it all
 (require rackunit)
 

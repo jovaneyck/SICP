@@ -27,7 +27,10 @@
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
 
-;let's define the necessary procedures
+;a) why can't we generalise all the cases?
+; because dynamic typesystems suck: variables have no type tag and are literals like 'x, cannot lookup in the table
+
+;b) let's define the necessary procedures
 (define (install-deriv-package)
   (define (=number? exp num)
     (and (number? exp) (= exp num)))
@@ -59,10 +62,21 @@
      (make-product (deriv (car exp) var)
                    (cadr exp))))
   
+  ;c) Define and install exponentation logic
+  (define (make-exponentation a n)
+    (cond [(= 0 n) 1]
+          [(= 1 n) a]
+          [else (list '** a n)]))
+  
+  (define (deriv-exponent exp var)
+    (make-product (make-product (cadr exp)
+                                (make-exponentation (car exp) (- (cadr exp) 1)))
+                  (deriv (car exp) var)))
   
   ;install them in the table
   (put 'deriv '+ deriv-sum)
-  (put 'deriv '* deriv-product))
+  (put 'deriv '* deriv-product)
+  (put 'deriv '** deriv-exponent))
 (install-deriv-package)
 
 ;test it all
@@ -75,5 +89,6 @@
 (check-equal? (deriv 'x 'x) 1)
 (check-equal? (deriv '(+ x 5) 'x) 1)
 (check-equal? (deriv '(* 3 x) 'x) 3)
+(check-equal? (deriv '(** x 3) 'x) '(* 3 (** x 2)))
 
 (println "Done")

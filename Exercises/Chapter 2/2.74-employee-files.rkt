@@ -100,8 +100,8 @@
         #f
         (car hits))))
 ;d)
-;* Install get-record for their division which returns a generic record (which contains their division type tag)
-;* Install get-salary for their division which just returns a salary from a record in their format
+;* Install get-record for their division which returns a generic record (which contains their division type tag). It should return #f if not found or search will blow up.
+;* Install get-salary for their division which just returns a salary from a record in their native format
 
 (require rackunit)
 

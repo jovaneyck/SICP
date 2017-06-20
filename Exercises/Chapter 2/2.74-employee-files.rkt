@@ -14,26 +14,36 @@
 (define (get-division file) (car file))
 (define (get-contents file) (cdr file))
 
+(define (make-generic-record division record) (cons division record))
+(define (get-record-division record) (car record))
+(define (get-record-contents record) (cdr record))
+
 ;division 1
 ;just a list stored in a list
 (define (make-customer1 key salary) (cons key salary))
 (define file1 (make-file 'division1
-                         (list (make-customer1 "Alice" 300)
-                               (make-customer1 "David" 250))))
+                         (list (make-customer1 "Alice" 3000)
+                               (make-customer1 "David" 2500))))
 
 (define (install-division1-operations)
   (define (get-key record)
     (car record))
   (define (get-record key file)
-    (car (filter (λ (e) (eq? key (get-key e))) file)))
+    (let ([raw-record (car (filter (λ (e) (eq? key (get-key e))) file))])
+      (make-generic-record 'division1 raw-record)))
+  (define (get-salary record)
+    (cdr record))
   
-  (put 'get-record 'division1 get-record))
+  (put 'get-record 'division1 get-record)
+  (put 'get-salary 'division1 get-salary))
 (install-division1-operations)
 
 ;division 2
 ;a key-value map stored in a tree
-(define (make-customer2 key salary) (cons key
-                                          (list (cons 'salary salary))))
+(define (make-customer2 key salary)
+  (list
+   (cons 'key key)
+   (cons 'salary salary)))
 
 (define empty-tree '())
 (define (empty-tree? t) (equal? empty-tree t))
@@ -45,12 +55,12 @@
 (define (make-leaf entry) (make-tree entry empty-tree empty-tree))
 
 (define file2 (make-file 'division2
-                         (make-tree (make-customer2 "Alice" 310)
-                                    (make-leaf (make-customer2 "Bob" 290))
+                         (make-tree (make-customer2 "Alice" 3100)
+                                    (make-leaf (make-customer2 "Bob" 2900))
                                     empty-tree)))
 
 (define (install-division2-operations)
-  (define (get-key record) (car record))
+  (define (get-key record) (cdr (assoc 'key record)))
   
   (define empty-set empty-tree)
   (define (empty-set? s) (equal? empty-set s))
@@ -61,9 +71,13 @@
           [else                          (lookup the-key (right-branch set))]))
   
   (define (get-record key file)
-    (lookup key file))
+    (make-generic-record 'division2 (lookup key file)))
   
-  (put 'get-record 'division2 get-record))
+  (define (get-salary record)
+    (cdr (assoc 'salary (cdr record))))
+  
+  (put 'get-record 'division2 get-record)
+  (put 'get-salary 'division2 get-salary))
 (install-division2-operations)
 
 ;generic procedures
@@ -72,9 +86,17 @@
   (let ([operator (get 'get-record (get-division file))]
         [contents (get-contents file)])
     (operator key contents)))
+;b)
+(define (get-salary record)
+  (let ([operator (get 'get-salary (get-record-division record))]
+        [contents (get-record-contents record)])
+    (operator contents)))
 
 (require rackunit)
 
-(check-equal? (get-record "David" file1) (make-customer1 "David" 250))
-(check-equal? (get-record "Alice" file2) (make-customer2 "Alice" 310))
+(check-equal? (get-record "David" file1) (make-generic-record 'division1 (make-customer1 "David" 2500)))
+(check-equal? (get-record "Alice" file2) (make-generic-record 'division2 (make-customer2 "Alice" 3100)))
+
+(check-equal? (get-salary (get-record "David" file1)) 2500)
+(check-equal? (get-salary (get-record "Alice" file2)) 3100)
 (println "Done")

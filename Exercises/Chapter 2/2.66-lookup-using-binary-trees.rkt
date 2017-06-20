@@ -24,9 +24,9 @@
 
 (define database
   (make-tree
-        (make-customer 2 "Bob")
-        (make-leaf (make-customer 1 "Jo"))
-        (make-leaf (make-customer 3 "Alice"))))
+   (make-customer 2 "Bob")
+   (make-leaf (make-customer 1 "Jo"))
+   (make-leaf (make-customer 3 "Alice"))))
 
 ;mixing types :(((
 (check-false (lookup 1 empty-set))

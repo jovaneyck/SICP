@@ -29,7 +29,7 @@
   (define (get-key record)
     (car record))
   (define (get-record key file)
-    (let ([raw-record (car (filter (λ (e) (eq? key (get-key e))) file))])
+    (let ([raw-record (assf (λ (k) (eq? key k)) file)]) ;assf similar to LINQ [(kvp);(kvp)].Single(key => predicate(key))
       (make-generic-record 'division1 raw-record)))
   (define (get-salary record)
     (cdr record))
@@ -91,9 +91,18 @@
   (let ([operator (get 'get-salary (get-record-division record))]
         [contents (get-record-contents record)])
     (operator contents)))
+;c)
+(define (find-employee-record name files)
+  (let ([hits (filter (λ (hit) (not (false? (cdr hit))))
+                      (map (λ (file) (get-record name file))
+                           files))])
+    (if (null? hits)
+        #f
+        (car hits))))
 ;d)
 ;* Install get-record for their division which returns a generic record (which contains their division type tag)
 ;* Install get-salary for their division which just returns a salary from a record in their format
+
 (require rackunit)
 
 (check-equal? (get-record "David" file1) (make-generic-record 'division1 (make-customer1 "David" 2500)))
@@ -101,4 +110,10 @@
 
 (check-equal? (get-salary (get-record "David" file1)) 2500)
 (check-equal? (get-salary (get-record "Alice" file2)) 3100)
+
+(check-equal? (find-employee-record "Alice" (list file1 file2)) (make-generic-record 'division1 (make-customer1 "Alice" 3000)))
+(check-equal? (find-employee-record "David" (list file1 file2)) (make-generic-record 'division1 (make-customer1 "David" 2500)))
+(check-equal? (find-employee-record "Bob" (list file1 file2)) (make-generic-record 'division2 (make-customer2 "Bob" 2900)))
+(check-false  (find-employee-record "I don't exist" (list file1 file2)))
+
 (println "Done")

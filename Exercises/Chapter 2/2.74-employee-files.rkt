@@ -91,7 +91,9 @@
   (let ([operator (get 'get-salary (get-record-division record))]
         [contents (get-record-contents record)])
     (operator contents)))
-
+;d)
+;* Install get-record for their division which returns a generic record (which contains their division type tag)
+;* Install get-salary for their division which just returns a salary from a record in their format
 (require rackunit)
 
 (check-equal? (get-record "David" file1) (make-generic-record 'division1 (make-customer1 "David" 2500)))

@@ -35,6 +35,7 @@
            (list op type-tags))))))
 
 ;generic procedures
+;these HAVE to be generic procedures as well, which the text book fails to mention. At all :)
 (define (real-part-custom c) (apply-generic 'real-part-custom c))
 (define (imag-part-custom c) (apply-generic 'imag-part-custom c))
 (define (magnitude-custom c) (apply-generic 'magnitude-custom c))

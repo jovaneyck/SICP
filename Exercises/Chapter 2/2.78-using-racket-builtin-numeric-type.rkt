@@ -12,7 +12,7 @@
                            operations-table))]
     (if (null? operation)
         (error "Did not find operation" op type)
-        (caddr (car operation)))))
+        (caddar operation))))
 
 (define (attach-tag type-tag contents)
   (if (eq? type-tag 'scheme-number) ;don't wrap
@@ -22,7 +22,7 @@
   (cond
     [(number? datum) 'scheme-number] ;isn't part of the data
     [(pair? datum) (car datum)]
-        [else (error "Bad tagged datum -- TYPE-TAG" datum)]))
+    [else (error "Bad tagged datum -- TYPE-TAG" datum)]))
 (define (contents datum)
   (cond
     [(number? datum) datum] ;isn't wrapped

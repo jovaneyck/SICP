@@ -172,6 +172,9 @@
   (define (div-complex z1 z2)
     (make-from-mag-ang (/ (magnitude-custom z1) (magnitude-custom z2))
                        (- (angle-custom z1) (angle-custom z2))))
+  (define (equ-complex? x y)
+    (and (= (real-part-custom x) (real-part-custom y))
+         (= (imag-part-custom x) (imag-part-custom y))))
   ;; interface to rest of the system
   (define (tag z) (attach-tag 'complex z))
 
@@ -191,7 +194,9 @@
   (put 'make-from-real-imag 'complex
        (lambda (x y) (tag (make-from-real-imag x y))))
   (put 'make-from-mag-ang 'complex
-       (lambda (r a) (tag (make-from-mag-ang r a)))))
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  (put 'equ? '(complex complex)
+       (λ (x y) (equ-complex? x y))))
 (install-complex-package)
 
 (require rackunit)
@@ -213,5 +218,8 @@
 (check-false (equ? (make-rational 1 2) (make-rational 1 3)))
 (check-true (equ? (make-rational 1 2) (make-rational 1 2)))
 (check-true (equ? (make-rational 1 2) (make-rational 3 6)))
+
+(check-false (equ? (make-complex-from-real-imag 1 2) (make-complex-from-real-imag 2 3)))
+(check-true (equ? (make-complex-from-real-imag 1 2) (make-complex-from-real-imag 1 2)))
 
 (println "Done")

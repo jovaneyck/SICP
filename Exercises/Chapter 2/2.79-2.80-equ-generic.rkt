@@ -45,6 +45,7 @@
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
 (define (equ? x y) (apply-generic 'equ? x y))
+(define (=zero? x) (apply-generic '=zero? x))
 
 ;implementations
 (define (install-scheme-number-package)
@@ -61,7 +62,9 @@
   (put 'make 'scheme-number
        (lambda (x) (tag x)))
   (put 'equ? '(scheme-number scheme-number)
-       (λ (x y) (= x y)))) ;just aliasing = also works
+       (λ (x y) (= x y)));just aliasing = also works
+  (put '=zero? '(scheme-number)
+       (λ (n) (= 0 n)))) 
 (install-scheme-number-package)
 
 (define (install-rational-package)
@@ -88,6 +91,8 @@
   (define (equ-rat? x y)
     (and (= (numer x) (numer y))
          (= (denom x) (denom y))))
+  (define (=zero-rat? n)
+    (= 0 (numer n)))
   ;; interface to rest of the system
   (define (tag x) (attach-tag 'rational x))
   (put 'add '(rational rational)
@@ -101,7 +106,9 @@
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   (put 'equ? '(rational rational)
-       (lambda (x y) (equ-rat? x y))))
+       (lambda (x y) (equ-rat? x y)))
+  (put '=zero? '(rational)
+       (λ (n) (=zero-rat? n))))
 (install-rational-package)
 
 (define (install-rectangular-package)
@@ -175,6 +182,11 @@
   (define (equ-complex? x y)
     (and (= (real-part-custom x) (real-part-custom y))
          (= (imag-part-custom x) (imag-part-custom y))))
+
+  (define (=zero-complex? n)
+    (and (= 0 (real-part-custom n))
+         (= 0 (imag-part-custom n))))
+  
   ;; interface to rest of the system
   (define (tag z) (attach-tag 'complex z))
 
@@ -196,7 +208,9 @@
   (put 'make-from-mag-ang 'complex
        (lambda (r a) (tag (make-from-mag-ang r a))))
   (put 'equ? '(complex complex)
-       (λ (x y) (equ-complex? x y))))
+       (λ (x y) (equ-complex? x y)))
+  (put '=zero? '(complex)
+       (λ (n) (=zero-complex? n))))
 (install-complex-package)
 
 (require rackunit)
@@ -221,5 +235,14 @@
 
 (check-false (equ? (make-complex-from-real-imag 1 2) (make-complex-from-real-imag 2 3)))
 (check-true (equ? (make-complex-from-real-imag 1 2) (make-complex-from-real-imag 1 2)))
+
+(check-true (=zero? (make-scheme-number 0)))
+(check-false (=zero? (make-scheme-number 2)))
+
+(check-true (=zero? (make-rational 0 3)))
+(check-false (=zero? (make-rational 1 3)))
+
+(check-true (=zero? (make-complex-from-real-imag 0 0)))
+(check-false (=zero? (make-complex-from-real-imag 1 2)))
 
 (println "Done")

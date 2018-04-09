@@ -14,5 +14,7 @@
   (check-eq? (A 10) 15)
   (check-eq? (A 10) 25))
 
+(check-eq? ((make-accumulator 2) 4) 6)
+
 (check-eq? (+ 1 1) 2)
 (println "...done!")

@@ -36,21 +36,51 @@
         (else (set-front-ptr! queue (cdr (front-ptr queue)))
               queue)))
 
+(define (to-string-queue q)
+  (define (to-string-list l)
+    (format "~a" l))
+  (cond [(empty-queue? q) ""]
+        [else
+         (let [(l (front-ptr q))]
+           (to-string-list l))]))
 (define (print-queue q)
-  (println (front-ptr q)))
+  (println (to-string-queue q)))
 
 (require rackunit)
+(print "Testing...")
+(define q (make-queue))
+(define (check-prints-to? q expected)
+  (check-equal? (to-string-queue q) expected))
+
+
+(insert-queue! q 'a)
+(check-prints-to? q "{a}")
+
+(insert-queue! q 'b)
+(check-prints-to? q "{a b}")
+
+(delete-queue! q)
+(check-prints-to? q "{b}")
+
+(insert-queue! q 'c)
+(check-prints-to? q "{b c}")
+
+(insert-queue! q 'd)
+(check-prints-to? q "{b c d}")
+
+(delete-queue! q)
+(check-prints-to? q "{c d}")
+
+(print-queue q)
 
 (define q1 (make-queue))
 (insert-queue! q1 'a)
-(print-queue q1)
-;((a) a)
+(check-prints-to? q1 "{a}")
 (insert-queue! q1 'b)
-(print-queue q1)
-;((a b) b)
+(check-prints-to? q1 "{a b}")
 (delete-queue! q1)
-(print-queue q1)
-;((b) b)
+(check-prints-to? q1 "{b}")
 (delete-queue! q1)
-(print-queue q1)
-;(() b)
+(check-prints-to? q1 "")
+
+(println "..done!")

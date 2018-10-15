@@ -1,8 +1,6 @@
 #lang racket
 (require r5rs) ;set-car!
 
-(define apply-in-underlying-scheme apply)
-
 ;helpers
 (define (tagged-list? exp tag)
   (if (pair? exp)
@@ -202,28 +200,8 @@
 (define (true? x) (not (eq? x false)))
 (define (false? x) (eq? x false))
 
-;ye mighty eval
-(define (eval exp env)
-  (cond ((self-evaluating? exp) exp)
-        ((variable? exp) (lookup-variable-value exp env))
-        ((quoted? exp) (text-of-quotation exp))
-        ((assignment? exp) (eval-assignment exp env))
-        ((definition? exp) (eval-definition exp env))
-        ((if? exp) (eval-if exp env))
-        ((lambda? exp) (make-procedure (lambda-parameters exp)
-                                       (lambda-body exp)
-                                       env))
-        ((begin? exp)
-         (eval-sequence (begin-actions exp) env))
-        ((cond? exp) (eval (cond->if exp) env))
-        ((application? exp)
-         (my-apply (eval (operator exp) env)
-                (list-of-values (operands exp) env)))
-        (else
-         (error "Unknown expression type: EVAL" exp))))
-
 ;ye mighty apply
-(define (my-apply procedure arguments)
+(define (apply procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
@@ -241,11 +219,7 @@
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
-        (list 'null? null?)
-        (list '+ +)
-        (list '- -)
-        (list '* *)
-        (list '/ /)))
+        (list 'null? null?)))
 (define (primitive-procedure-names)
   (map car primitive-procedures))
 (define (primitive-procedure-objects)
@@ -282,6 +256,8 @@
       (user-print output)))
   (driver-loop))
 
+(define apply-in-underlying-scheme apply)
+
 (define (prompt-for-input string)
   (newline) (newline) (display string) (newline))
 (define (announce-output string)
@@ -294,5 +270,29 @@
                      (procedure-body object)
                      '<procedure-env>))
       (display object)))
+
+
+;4.2 changed for exercise:
+;ye mighty eval
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ;application BEFORE assignment
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp) (make-procedure (lambda-parameters exp)
+                                       (lambda-body exp)
+                                       env))
+        ((begin? exp)
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
+        (else
+         (error "Unknown expression type: EVAL" exp))))
+
 
 (driver-loop)
